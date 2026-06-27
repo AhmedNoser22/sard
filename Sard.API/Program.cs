@@ -6,7 +6,6 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// good
 
 builder.Services.AddControllers(options =>
 {
