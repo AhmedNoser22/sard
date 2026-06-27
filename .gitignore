@@ -1,0 +1,21 @@
+# Secrets
+**/appsettings.Development.json
+
+**/appsettings.Production.json
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+
+# Angular
+node_modules/
+dist/
+.angular/
+
+# OS
+.DS_Store
+Thumbs.db

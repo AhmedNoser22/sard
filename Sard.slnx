@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Sard.API/Sard.API.csproj" />
+  <Project Path="Sard.Application/Sard.Application.csproj" />
+  <Project Path="Sard.Domain/Sard.Domain.csproj" />
+  <Project Path="Sard.Infrastructure/Sard.Infrastructure.csproj" />
+</Solution>
