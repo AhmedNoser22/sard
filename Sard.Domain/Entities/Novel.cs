@@ -12,6 +12,9 @@ namespace Sard.Domain.Entities
         public decimal Price { get; set; }
         public NovelStatus Status { get; set; }
         public DateTime CreatedAt { get; set; } = EgyptDateTime.Now;
+        public int? LastReadChapterId { get; set; }
+
+        public int ReadCount { get; set; }
 
         public string AuthorId { get; set; }
         public AppUser Author { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace Sard.Application.Validators
+﻿namespace Sard.Application.Validators.Auth
 {
     public class RegisterValidator : AbstractValidator<RegisterDto>
     {
