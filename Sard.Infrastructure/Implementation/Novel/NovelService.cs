@@ -1,6 +1,6 @@
 ﻿namespace Sard.Infrastructure.Implementation.Novel
 {
-    public class NovelService(AppDbContext db) : INovelService
+    public class NovelService(AppDbContext db, IImageService imageService) : INovelService
     {
         public async Task<Result<NovelSummaryDto>> CreateNovelAsync(string userId, CreateNovelDto dto)
         {
@@ -19,7 +19,26 @@
 
             return Result<NovelSummaryDto>.Success(MapToDto(novel));
         }
+        public async Task<Result<string>> UploadCoverAsync(string userId, int novelId, IFormFile cover)
+        {
+            var novel = await db.Novels
+                .FirstOrDefaultAsync(n => n.Id == novelId && n.AuthorId == userId);
 
+            if (novel is null)
+                return Result<string>.Failure("الرواية غير موجودة");
+
+            if (!string.IsNullOrEmpty(novel.CoverImageUrl))
+                await imageService.DeleteAsync(novel.CoverImageUrl);
+
+            var upload = await imageService.UploadAsync(cover, "sard/covers");
+            if (!upload.IsSuccess)
+                return Result<string>.Failure(upload.Error!);
+
+            novel.CoverImageUrl = upload.Data;
+            await db.SaveChangesAsync();
+
+            return Result<string>.Success(upload.Data!);
+        }
         public async Task<Result<NovelSummaryDto>> UpdateNovelAsync(string userId, int novelId, UpdateNovelDto dto)
         {
             var novel = await db.Novels

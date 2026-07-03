@@ -19,6 +19,13 @@ namespace Sard.API.Controllers
             var result = await novelService.CreateNovelAsync(UserId, dto);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+        [HttpPost("{novelId}/cover")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadCover(int novelId, [FromForm] UploadCoverDto dto)
+        {
+            var result = await novelService.UploadCoverAsync(UserId, novelId, dto.Cover);
+            return result.IsSuccess ? Ok(new { coverImageUrl = result.Data }) : BadRequest(result.Error);
+        }
 
         [HttpPut("{novelId}")]
         public async Task<IActionResult> UpdateNovel(int novelId, [FromBody] UpdateNovelDto dto)
