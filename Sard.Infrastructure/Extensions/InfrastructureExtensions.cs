@@ -1,4 +1,7 @@
-﻿namespace Sard.Infrastructure.Extensions
+﻿using Sard.Infrastructure.Implementation.Notification;
+using Sard.Infrastructure.Implementation.Post;
+
+namespace Sard.Infrastructure.Extensions
 {
     public static class InfrastructureExtensions
     {
@@ -63,7 +66,12 @@
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<INovelService, NovelService>();
+            services.AddScoped<IPostService, PostService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
+
+            //real-time communication
+            services.AddSignalR();
             return services;
         }
     }

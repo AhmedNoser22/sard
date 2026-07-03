@@ -9,6 +9,7 @@ namespace Sard.Domain.Entities
         public string Content { get; set; }
         public PostStatus Status { get; set; }
         public int LikesCount { get; set; }
+        public int CommentsCount { get; set; }
         public DateTime CreatedAt { get; set; } = EgyptDateTime.Now;
         public DateTime? BannedUntil { get; set; }
         public string? BanReason { get; set; }

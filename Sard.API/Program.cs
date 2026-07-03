@@ -1,6 +1,8 @@
 using Sard.API.Filters;
 
 using Sard.Infrastructure.Extensions;
+using Sard.Infrastructure.Hubs;
+
 //using Sard.Infrastructure.Seeders;
 using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +52,7 @@ app.UseStaticFiles();
 
 app.UseCors("AllowAngular");
 
+app.MapHub<NabdHub>("/hubs/nabd");
 
 app.UseAuthentication();
 
