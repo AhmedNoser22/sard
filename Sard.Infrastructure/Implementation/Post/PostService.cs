@@ -12,7 +12,7 @@
                 .Where(p => p.Status == PostStatus.Active)
                 .Include(p => p.User)
                 .Include(p => p.Replies).ThenInclude(r => r.User)
-                .Include(p => p.Likes)
+                .Include(p => p.Likes).ThenInclude(l => l.User)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -160,8 +160,39 @@
 
             return Result<string>.Success("تم الحذف");
         }
+        public async Task<Result<string>> DeleteReplyAsync(string userId, int replyId)
+        {
+            var reply = await db.Replies
+                .Include(r => r.Post)
+                .FirstOrDefaultAsync(r => r.Id == replyId);
 
-        private static PostDto MapToDto(Sard.Domain.Entities.Post p, string currentUserId) => new(
+            if (reply is null)
+                return Result<string>.Failure("التعليق غير موجود");
+
+            if (reply.UserId != userId && reply.Post.UserId != userId)
+                return Result<string>.Failure("غير مصرح");
+
+            var postId = reply.PostId;
+            var post = reply.Post;
+
+            try
+            {
+                db.Replies.Remove(reply);
+                post.CommentsCount = Math.Max(0, post.CommentsCount - 1);
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Result<string>.Success("تم الحذف");
+            }
+
+            await hubContext.Clients
+                .Group($"post-{postId}")
+                .SendAsync("ReplyDeleted", new { postId, replyId });
+
+            return Result<string>.Success("تم الحذف");
+        }
+        private static PostDto MapToDto(Domain.Entities.Post p, string currentUserId) => new(
             p.Id,
             p.Content,
             p.UserId,
@@ -173,11 +204,13 @@
             p.Status,
             p.CreatedAt,
             p.Replies?.OrderBy(r => r.CreatedAt)
-                .Select(r => new ReplyDto(
-                    r.Id, r.Content, r.UserId,
-                    r.User?.DisplayName ?? "",
-                    r.User?.ProfileImageUrl,
-                    r.CreatedAt)) ?? []
-        );
+            .Select(r => new ReplyDto(
+            r.Id, r.Content, r.UserId,
+            r.User?.DisplayName ?? "",
+            r.User?.ProfileImageUrl,
+            r.CreatedAt)) ?? [],
+            p.Likes?.Select(l => l.User?.DisplayName ?? "").Where(n => !string.IsNullOrEmpty(n)) ?? []
+            );
+
     }
 }

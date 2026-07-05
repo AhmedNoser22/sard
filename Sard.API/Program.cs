@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR;
 using Sard.API.Filters;
 
 using Sard.Infrastructure.Extensions;
@@ -31,6 +32,10 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
+
+builder.Services.AddSignalR();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -52,12 +57,13 @@ app.UseStaticFiles();
 
 app.UseCors("AllowAngular");
 
-app.MapHub<NabdHub>("/hubs/nabd");
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<NabdHub>("/hubs/nabd");
 
 app.Run();

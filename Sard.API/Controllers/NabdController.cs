@@ -54,5 +54,11 @@ namespace Sard.API.Controllers
             var result = await postService.DeletePostAsync(UserId, postId);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+        [HttpDelete("{postId}/reply/{replyId}")]
+        public async Task<IActionResult> DeleteReply(int postId, int replyId)
+        {
+            var result = await postService.DeleteReplyAsync(UserId, replyId);
+            return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
+        }
     }
 }

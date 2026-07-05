@@ -11,6 +11,8 @@
     bool IsLikedByMe,
     PostStatus Status,
     DateTime CreatedAt,
-    IEnumerable<ReplyDto> Replies
+    IEnumerable<ReplyDto> Replies,
+    IEnumerable<string> LikedByNames
 );
 }
+    

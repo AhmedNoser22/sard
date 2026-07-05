@@ -5,6 +5,7 @@
     string Email,
     string Password,
     string ConfirmPassword,
-    bool AgreeToTerms
+    bool AgreeToTerms,
+    string Id
         );
 }

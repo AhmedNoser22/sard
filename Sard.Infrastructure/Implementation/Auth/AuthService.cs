@@ -3,11 +3,11 @@
 namespace Sard.Infrastructure.Implementation.Auth
 {
     public class AuthService(
-    UserManager<AppUser> userManager,
-    ITokenService tokenService,
-    IEmailService emailService,
-    IGoogleAuthService googleAuthService,
-    IMemoryCache cache) : IAuthService
+        UserManager<AppUser> userManager,
+        ITokenService tokenService,
+        IEmailService emailService,
+        IGoogleAuthService googleAuthService,
+        IMemoryCache cache) : IAuthService
     {
         public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto)
         {
@@ -30,9 +30,11 @@ namespace Sard.Infrastructure.Implementation.Auth
             }
 
             return Result<AuthResponseDto>.Success(new AuthResponseDto(
+                dto.Id,
                 dto.DisplayName,
                 dto.Email,
                 string.Empty
+                
             ));
         }
 
@@ -67,11 +69,13 @@ namespace Sard.Infrastructure.Implementation.Auth
             var roles = await userManager.GetRolesAsync(user);
             var token = tokenService.GenerateToken(user, roles);
 
-            return Result<AuthResponseDto>.Success(new AuthResponseDto(
-                user.DisplayName,
-                user.Email!,
-                token
-            ));
+            return Result<AuthResponseDto>.Success(new 
+                AuthResponseDto(
+                user.Id,           
+                user.DisplayName,  
+                user.Email!,       
+                token              
+                ));
         }
 
         public async Task<Result<string>> ResendCodeAsync(ResendCodeDto dto)
@@ -100,11 +104,13 @@ namespace Sard.Infrastructure.Implementation.Auth
             var roles = await userManager.GetRolesAsync(user);
             var token = tokenService.GenerateToken(user, roles);
 
-            return Result<AuthResponseDto>.Success(new AuthResponseDto(
-                user.DisplayName,
-                user.Email!,
-                token
-            ));
+            return Result<AuthResponseDto>.Success(new
+               AuthResponseDto(
+               user.Id,
+               user.DisplayName,
+               user.Email!,
+               token
+               ));
         }
 
         public async Task<Result<AuthResponseDto>> GoogleLoginAsync(GoogleLoginDto dto)
@@ -137,11 +143,13 @@ namespace Sard.Infrastructure.Implementation.Auth
             var roles = await userManager.GetRolesAsync(user);
             var token = tokenService.GenerateToken(user, roles);
 
-            return Result<AuthResponseDto>.Success(new AuthResponseDto(
-                user.DisplayName,
-                user.Email!,
-                token
-            ));
+            return Result<AuthResponseDto>.Success(new
+               AuthResponseDto(
+               user.Id,
+               user.DisplayName,
+               user.Email!,
+               token
+               ));
         }
 
         public async Task<Result<string>> ForgotPasswordAsync(ResendCodeDto dto)
