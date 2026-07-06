@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Sard.Application.DTOs.AI;
 using Sard.Application.Services;
+using Sard.Domain.Enums;
 
 namespace Sard.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = AppRoles.User)]
     public class AiController(IAiService aiService) : ControllerBase
     {
         [HttpPost("correct")]

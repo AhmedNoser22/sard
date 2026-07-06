@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Sard.Application.DTOs.Novel;
 using Sard.Application.Interfaces.Novel;
+using Sard.Domain.Enums;
 using System.Security.Claims;
 
 namespace Sard.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = AppRoles.User)]
     public class NovelsController(INovelService novelService) : ControllerBase
     {
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;

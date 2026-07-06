@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Sard.Application.DTOs.Post;
 using Sard.Application.Interfaces.Post;
+using Sard.Domain.Enums;
 using System.Security.Claims;
 
 namespace Sard.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = AppRoles.User)]
     public class NabdController(IPostService postService) : ControllerBase
     {
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;

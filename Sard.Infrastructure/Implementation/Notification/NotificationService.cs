@@ -43,5 +43,24 @@
                 .Group($"user-{targetUserId}")
                 .SendAsync("ReceiveNotification", notification);
         }
+        public async Task NotifyFollowAsync(string actorId, string targetUserId)
+        {
+            if (actorId == targetUserId) return;
+
+            var actor = await userManager.FindByIdAsync(actorId);
+            if (actor is null) return;
+
+            var notification = new NotificationDto(
+                Type: "follow",
+                Message: "بدأ في متابعتك",
+                ActorName: actor.DisplayName,
+                PostId: null,
+                CreatedAt: EgyptDateTime.Now
+            );
+
+            await hubContext.Clients
+                .Group($"user-{targetUserId}")
+                .SendAsync("ReceiveNotification", notification);
+        }
     }
 }

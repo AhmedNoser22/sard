@@ -1,16 +1,13 @@
 ﻿namespace Sard.Application.DTOs.Profile
 {
-    public record ProfileDto(
+    public record PublicProfileDto(
     string Id,
     string DisplayName,
     string? Bio,
     string? ProfileImageUrl,
-    DateTime CreatedAt,
-    int PublishedNovelsCount,
-    int TotalReadsCount,
     int FollowersCount,
     int FollowingCount,
-    IEnumerable<NovelSummaryDto> Novels,
+    bool IsFollowedByMe,
     IEnumerable<HighlightDto> Highlights,
     IEnumerable<FavoriteNovelDto> FavoriteNovels
 );

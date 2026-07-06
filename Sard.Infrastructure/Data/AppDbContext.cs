@@ -12,6 +12,8 @@
         public DbSet<PostLike> PostLikes => Set<PostLike>();
         public DbSet<Quote> Quotes => Set<Quote>();
         public DbSet<Highlight> Highlights => Set<Highlight>();
+        public DbSet<Follow> Follows => Set<Follow>();
+        public DbSet<FavoriteNovel> FavoriteNovels => Set<FavoriteNovel>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

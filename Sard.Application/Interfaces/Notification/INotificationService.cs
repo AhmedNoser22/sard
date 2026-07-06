@@ -4,5 +4,6 @@
     {
         Task NotifyLikeAsync(string actorId, string targetUserId, int postId);
         Task NotifyReplyAsync(string actorId, string targetUserId, int postId);
+        Task NotifyFollowAsync(string actorId, string targetUserId);
     }
 }

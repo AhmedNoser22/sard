@@ -3,25 +3,21 @@
     public class ProfileService(
     AppDbContext db,
     UserManager<AppUser> userManager,
-    IImageService imageService) : IProfileService
+    IImageService imageService,
+    INotificationService notificationService) : IProfileService
     {
         public async Task<Result<ProfileDto>> GetProfileAsync(string userId)
         {
             var user = await userManager.FindByIdAsync(userId);
-            if (user is null)
-                return Result<ProfileDto>.Failure("المستخدم غير موجود");
+            if (user is null) return Result<ProfileDto>.Failure("المستخدم غير موجود");
 
-            var novels = await db.Novels
-                .Where(n => n.AuthorId == userId)
-                .Include(n => n.Chapters)
-                .ToListAsync();
+            var novels = await db.Novels.Where(n => n.AuthorId == userId).Include(n => n.Chapters).ToListAsync();
+            var highlights = await db.Highlights.Where(h => h.UserId == userId).OrderByDescending(h => h.CreatedAt).ToListAsync();
+            var favoriteNovels = await db.FavoriteNovels.Where(f => f.UserId == userId).OrderByDescending(f => f.CreatedAt).ToListAsync();
+            var followersCount = await db.Follows.CountAsync(f => f.FollowedId == userId);
+            var followingCount = await db.Follows.CountAsync(f => f.FollowerId == userId);
 
-            var highlights = await db.Highlights
-                .Where(h => h.UserId == userId)
-                .OrderByDescending(h => h.CreatedAt)
-                .ToListAsync();
-
-            return Result<ProfileDto>.Success(MapToDto(user, novels, highlights));
+            return Result<ProfileDto>.Success(MapToDto(user, novels, highlights, favoriteNovels, followersCount, followingCount));
         }
 
         public async Task<Result<ProfileDto>> UpdateProfileAsync(string userId, UpdateProfileDto dto)
@@ -94,7 +90,131 @@
             return Result<string>.Success("تم الحذف بنجاح");
         }
 
-        private static ProfileDto MapToDto(AppUser user, List<Sard.Domain.Entities.Novel> novels, List<Highlight> highlights) =>
+        public async Task<Result<PublicProfileDto>> GetPublicProfileAsync(string targetUserId, string currentUserId)
+        {
+            var user = await userManager.FindByIdAsync(targetUserId);
+            if (user is null)
+                return Result<PublicProfileDto>.Failure("المستخدم غير موجود");
+
+            var followersCount = await db.Follows.CountAsync(f => f.FollowedId == targetUserId);
+            var followingCount = await db.Follows.CountAsync(f => f.FollowerId == targetUserId);
+            var isFollowed = await db.Follows.AnyAsync(f => f.FollowerId == currentUserId && f.FollowedId == targetUserId);
+
+            var highlights = await db.Highlights
+                .Where(h => h.UserId == targetUserId)
+                .OrderByDescending(h => h.CreatedAt)
+                .ToListAsync();
+
+            var favoriteNovels = await db.FavoriteNovels
+                .Where(f => f.UserId == targetUserId)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
+
+            return Result<PublicProfileDto>.Success(new PublicProfileDto(
+                user.Id,
+                user.DisplayName,
+                user.Bio,
+                user.ProfileImageUrl,
+                followersCount,
+                followingCount,
+                isFollowed,
+                highlights.Select(h => new HighlightDto(h.Id, h.Content, h.NovelTitle, h.NovelAuthor, h.CreatedAt)),
+                favoriteNovels.Select(f => new FavoriteNovelDto(f.Id, f.Title, f.AuthorName, f.CoverImageUrl, 0))
+            ));
+        }
+
+        public async Task<Result<FollowToggleResultDto>> ToggleFollowAsync(string followerId, string followedId)
+        {
+            if (followerId == followedId)
+                return Result<FollowToggleResultDto>.Failure("لا يمكنك متابعة نفسك");
+
+            var existing = await db.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowedId == followedId);
+
+            string action;
+
+            if (existing is not null)
+            {
+                db.Follows.Remove(existing);
+                await db.SaveChangesAsync();
+                action = "unfollow";
+            }
+            else
+            {
+                try
+                {
+                    db.Follows.Add(new Follow
+                    {
+                        FollowerId = followerId,
+                        FollowedId = followedId,
+                        CreatedAt = EgyptDateTime.Now
+                    });
+                    await db.SaveChangesAsync();
+                    await notificationService.NotifyFollowAsync(followerId, followedId);
+                    action = "follow";
+                }
+                catch (DbUpdateException)
+                {
+                    action = "follow";
+                }
+            }
+            var followersCount = await db.Follows.CountAsync(f => f.FollowedId == followedId);
+
+            return Result<FollowToggleResultDto>.Success(new FollowToggleResultDto(action, followersCount));
+        }
+        public async Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto)
+        {
+            var novel = new FavoriteNovel
+            {
+                Title = dto.Title,
+                AuthorName = dto.AuthorName,
+                CoverImageUrl = dto.CoverImageUrl,
+                UserId = userId,
+                CreatedAt = EgyptDateTime.Now
+            };
+
+            db.FavoriteNovels.Add(novel);
+            await db.SaveChangesAsync();
+
+            return Result<FavoriteNovelDto>.Success(new FavoriteNovelDto(
+                novel.Id, novel.Title, novel.AuthorName, novel.CoverImageUrl, 0));
+        }
+
+        public async Task<Result<string>> DeleteFavoriteNovelAsync(string userId, int novelId)
+        {
+            var novel = await db.FavoriteNovels
+                .FirstOrDefaultAsync(f => f.Id == novelId && f.UserId == userId);
+
+            if (novel is null)
+                return Result<string>.Failure("غير موجود");
+
+            db.FavoriteNovels.Remove(novel);
+            await db.SaveChangesAsync();
+
+            return Result<string>.Success("تم الحذف");
+        }
+        public async Task<Result<IEnumerable<FollowUserDto>>> GetFollowersAsync(string userId)
+        {
+            var followers = await db.Follows
+                .Where(f => f.FollowedId == userId)
+                .Include(f => f.Follower)
+                .Select(f => new FollowUserDto(f.Follower.Id, f.Follower.DisplayName, f.Follower.ProfileImageUrl))
+                .ToListAsync();
+
+            return Result<IEnumerable<FollowUserDto>>.Success(followers);
+        }
+
+        public async Task<Result<IEnumerable<FollowUserDto>>> GetFollowingAsync(string userId)
+        {
+            var following = await db.Follows
+                .Where(f => f.FollowerId == userId)
+                .Include(f => f.Followed)
+                .Select(f => new FollowUserDto(f.Followed.Id, f.Followed.DisplayName, f.Followed.ProfileImageUrl))
+                .ToListAsync();
+
+            return Result<IEnumerable<FollowUserDto>>.Success(following);
+        }
+        private static ProfileDto MapToDto(AppUser user, List<Sard.Domain.Entities.Novel> novels, List<Highlight> highlights, List<FavoriteNovel> favoriteNovels, int followersCount, int followingCount) =>
             new(
                 user.Id,
                 user.DisplayName,
@@ -103,6 +223,8 @@
                 user.CreatedAt,
                 novels.Count(n => n.Status == NovelStatus.Published),
                 novels.Sum(n => n.ReadCount),
+                followersCount,
+                followingCount,
                 novels.Select(n => new NovelSummaryDto(
                     n.Id,
                     n.Title,
@@ -120,7 +242,8 @@
                     h.NovelTitle,
                     h.NovelAuthor,
                     h.CreatedAt
-                ))
+                )),
+                 favoriteNovels.Select(f => new FavoriteNovelDto(f.Id, f.Title, f.AuthorName, f.CoverImageUrl, 0))
             );
     }
 }
