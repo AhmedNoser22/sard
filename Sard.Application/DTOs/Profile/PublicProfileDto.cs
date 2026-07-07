@@ -5,6 +5,7 @@
     string DisplayName,
     string? Bio,
     string? ProfileImageUrl,
+     DateTime CreatedAt,
     int FollowersCount,
     int FollowingCount,
     bool IsFollowedByMe,

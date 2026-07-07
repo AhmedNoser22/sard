@@ -115,6 +115,7 @@
                 user.DisplayName,
                 user.Bio,
                 user.ProfileImageUrl,
+                user.CreatedAt,
                 followersCount,
                 followingCount,
                 isFollowed,
