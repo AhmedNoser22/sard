@@ -269,7 +269,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("NovelId");
 
-                    b.ToTable("Chapters");
+                    b.ToTable("Chapters", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.FavoriteNovel", b =>
@@ -301,7 +301,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("FavoriteNovels");
+                    b.ToTable("FavoriteNovels", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Follow", b =>
@@ -322,7 +322,7 @@ namespace Sard.Infrastructure.Migrations
                     b.HasIndex("FollowerId", "FollowedId")
                         .IsUnique();
 
-                    b.ToTable("Follows");
+                    b.ToTable("Follows", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Highlight", b =>
@@ -357,7 +357,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Highlights");
+                    b.ToTable("Highlights", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Novel", b =>
@@ -405,7 +405,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Novels");
+                    b.ToTable("Novels", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Post", b =>
@@ -449,7 +449,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.PostLike", b =>
@@ -467,7 +467,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostLikes");
+                    b.ToTable("PostLikes", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Purchase", b =>
@@ -506,7 +506,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Purchases");
+                    b.ToTable("Purchases", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Quote", b =>
@@ -533,7 +533,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Quotes");
+                    b.ToTable("Quotes", (string)null);
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Reply", b =>
@@ -565,7 +565,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Replies");
+                    b.ToTable("Replies", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

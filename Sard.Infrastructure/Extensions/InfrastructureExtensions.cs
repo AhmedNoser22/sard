@@ -85,6 +85,13 @@ namespace Sard.Infrastructure.Extensions
 
             //real-time communication
             services.AddSignalR();
+
+            // setting for payment service
+
+            services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
+            services.AddScoped<IPaymentService, StripeService>();
+
+
             return services;
         }
     }

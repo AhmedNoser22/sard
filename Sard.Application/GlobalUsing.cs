@@ -7,4 +7,5 @@ global using Sard.Application.DTOs.Profile;
 global using Sard.Application.DTOs.Novel;
 global using Sard.Application.DTOs.Chapter;
 global using Sard.Domain.Enums;
-global using Sard.Application.DTOs.Post; 
+global using Sard.Application.DTOs.Post;
+global using Sard.Application.DTOs.Payment;

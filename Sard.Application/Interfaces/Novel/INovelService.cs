@@ -9,5 +9,7 @@
         Task<Result<ChapterDto>> GetChapterAsync(string userId, int novelId, int chapterId);
         Task<Result<IEnumerable<ChapterDto>>> GetChaptersAsync(string userId, int novelId);
         Task<Result<string>> SetLastReadChapterAsync(string userId, int novelId, int chapterId);
+        Task<Result<NovelSummaryDto>> UpdateNovelSettingsAsync(string userId, int novelId, UpdateNovelSettingsDto dto);
+        Task<Result<IEnumerable<PublishedNovelDto>>> GetPublishedNovelsAsync(int page, int pageSize);
     }
 }

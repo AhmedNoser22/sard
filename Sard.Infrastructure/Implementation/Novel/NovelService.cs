@@ -147,6 +147,40 @@
 
             return Result<string>.Success("تم الحفظ");
         }
+        public async Task<Result<NovelSummaryDto>> UpdateNovelSettingsAsync(string userId, int novelId, UpdateNovelSettingsDto dto)
+        {
+            var novel = await db.Novels
+                .Include(n => n.Chapters)
+                .FirstOrDefaultAsync(n => n.Id == novelId && n.AuthorId == userId);
+
+            if (novel is null)
+                return Result<NovelSummaryDto>.Failure("الرواية غير موجودة");
+
+            novel.Title = dto.Title;
+            novel.Description = dto.Description;
+            novel.Price = dto.Price;
+
+            await db.SaveChangesAsync();
+            return Result<NovelSummaryDto>.Success(MapToDto(novel));
+        }
+
+        public async Task<Result<IEnumerable<PublishedNovelDto>>> GetPublishedNovelsAsync(int page, int pageSize)
+        {
+            var novels = await db.Novels
+                .Where(n => n.Status == NovelStatus.Published)
+                .Include(n => n.Author)
+                .Include(n => n.Chapters)
+                .OrderByDescending(n => n.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Result<IEnumerable<PublishedNovelDto>>.Success(novels.Select(n => new PublishedNovelDto(
+                n.Id, n.Title, n.Description, n.CoverImageUrl, n.Price,
+                n.AuthorId, n.Author?.DisplayName ?? "", n.Author?.ProfileImageUrl,
+                n.Chapters?.Count ?? 0, n.ReadCount, n.CreatedAt
+            )));
+        }
 
         private static NovelSummaryDto MapToDto(Sard.Domain.Entities.Novel n) =>
             new(n.Id, n.Title, n.Description, n.CoverImageUrl, n.Price, n.Status,
