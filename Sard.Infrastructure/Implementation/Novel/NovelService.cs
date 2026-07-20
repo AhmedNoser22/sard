@@ -181,6 +181,61 @@
                 n.Chapters?.Count ?? 0, n.ReadCount, n.CreatedAt
             )));
         }
+        public async Task<Result<bool>> HasPurchasedAsync(string userId, int novelId)
+        {
+            var purchased = await db.Purchases.AnyAsync(p =>
+                p.UserId == userId &&
+                p.NovelId == novelId &&
+                p.Type == PurchaseType.ReadFee);
+
+            return Result<bool>.Success(purchased);
+        }
+
+        public async Task<Result<NovelDownloadDto>> GetNovelForDownloadAsync(string userId, int novelId)
+        {
+            var novel = await db.Novels
+                .Include(n => n.Author)
+                .Include(n => n.Chapters.OrderBy(c => c.Order))
+                .FirstOrDefaultAsync(n => n.Id == novelId && n.Status == NovelStatus.Published);
+
+            if (novel is null)
+                return Result<NovelDownloadDto>.Failure("الرواية غير موجودة");
+
+            if (novel.Price > 0)
+            {
+                var hasPurchased = await db.Purchases.AnyAsync(p =>
+                    p.UserId == userId &&
+                    p.NovelId == novelId &&
+                    p.Type == PurchaseType.ReadFee);
+
+                if (!hasPurchased)
+                    return Result<NovelDownloadDto>.Failure("يجب شراء الرواية أولاً");
+            }
+
+            return Result<NovelDownloadDto>.Success(new NovelDownloadDto(
+                novel.Title,
+                novel.Author?.DisplayName ?? "",
+                novel.Description,
+                novel.CoverImageUrl,
+                novel.Chapters.Select(c => new ChapterDownloadDto(c.Order, c.Title, c.Content))
+            ));
+        }
+        public async Task<Result<IEnumerable<PublishedNovelDto>>> GetPurchasedNovelsAsync(string userId)
+        {
+            var novels = await db.Purchases
+                .Where(p => p.UserId == userId && p.Type == PurchaseType.ReadFee)
+                .Include(p => p.Novel).ThenInclude(n => n.Author)
+                .Include(p => p.Novel).ThenInclude(n => n.Chapters)
+                .Select(p => p.Novel)
+                .Where(n => n != null && n.Status == NovelStatus.Published)
+                .ToListAsync();
+
+            return Result<IEnumerable<PublishedNovelDto>>.Success(novels.Select(n => new PublishedNovelDto(
+                n!.Id, n.Title, n.Description, n.CoverImageUrl, n.Price,
+                n.AuthorId, n.Author?.DisplayName ?? "", n.Author?.ProfileImageUrl,
+                n.Chapters?.Count ?? 0, n.ReadCount, n.CreatedAt
+            )));
+        }
 
         private static NovelSummaryDto MapToDto(Sard.Domain.Entities.Novel n) =>
             new(n.Id, n.Title, n.Description, n.CoverImageUrl, n.Price, n.Status,

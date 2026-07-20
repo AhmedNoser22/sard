@@ -92,6 +92,10 @@ namespace Sard.Infrastructure.Extensions
             services.AddScoped<IPaymentService, StripeService>();
 
 
+            // section for pdf generation   
+            services.AddScoped<NovelPdfService>();
+
+
             return services;
         }
     }

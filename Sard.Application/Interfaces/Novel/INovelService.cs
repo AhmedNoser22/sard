@@ -11,5 +11,8 @@
         Task<Result<string>> SetLastReadChapterAsync(string userId, int novelId, int chapterId);
         Task<Result<NovelSummaryDto>> UpdateNovelSettingsAsync(string userId, int novelId, UpdateNovelSettingsDto dto);
         Task<Result<IEnumerable<PublishedNovelDto>>> GetPublishedNovelsAsync(int page, int pageSize);
+        Task<Result<bool>> HasPurchasedAsync(string userId, int novelId);
+        Task<Result<NovelDownloadDto>> GetNovelForDownloadAsync(string userId, int novelId);
+        Task<Result<IEnumerable<PublishedNovelDto>>> GetPurchasedNovelsAsync(string userId);
     }
 }

@@ -84,5 +84,41 @@ namespace Sard.API.Controllers
             var result = await paymentService.InitiatePublishPaymentAsync(UserId, novelId);
             return result.IsSuccess ? Ok(new { iframeUrl = result.Data }) : BadRequest(result.Error);
         }
+        [HttpPost("{novelId}/purchase")]
+        [Authorize]
+        public async Task<IActionResult> PurchaseNovel(int novelId, [FromServices] IPaymentService paymentService)
+        {
+            var result = await paymentService.InitiateReadPaymentAsync(UserId, novelId);
+            return result.IsSuccess ? Ok(new { checkoutUrl = result.Data }) : BadRequest(result.Error);
+        }
+
+        [HttpGet("{novelId}/has-purchased")]
+        [Authorize]
+        public async Task<IActionResult> HasPurchased(int novelId)
+        {
+            var result = await novelService.HasPurchasedAsync(UserId, novelId);
+            return result.IsSuccess ? Ok(new { hasPurchased = result.Data }) : BadRequest(result.Error);
+        }
+
+        [HttpGet("{novelId}/download")]
+        [Authorize]
+        public async Task<IActionResult> DownloadNovel(int novelId)
+        {
+            var result = await novelService.GetNovelForDownloadAsync(UserId, novelId);
+            return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
+        }
+        [HttpGet("{novelId}/download/pdf")]
+        [Authorize]
+        public async Task<IActionResult> DownloadPdf(int novelId, [FromServices] NovelPdfService pdfService)
+        {
+            var result = await novelService.GetNovelForDownloadAsync(UserId, novelId);
+            if (!result.IsSuccess)
+                return BadRequest(result.Error);
+
+            var pdfBytes = pdfService.GeneratePdf(result.Data!);
+            var fileName = $"{result.Data!.Title}.pdf";
+
+            return File(pdfBytes, "application/pdf", fileName);
+        }
     }
 }
