@@ -68,9 +68,10 @@ namespace Sard.API.Controllers
         }
 
         [HttpPost("favorite-novels")]
-        public async Task<IActionResult> AddFavoriteNovel([FromBody] AddFavoriteNovelDto dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AddFavoriteNovel([FromForm] AddFavoriteNovelDto dto, IFormFile? cover)
         {
-            var result = await profileService.AddFavoriteNovelAsync(UserId, dto);
+            var result = await profileService.AddFavoriteNovelAsync(UserId, dto, cover);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
 

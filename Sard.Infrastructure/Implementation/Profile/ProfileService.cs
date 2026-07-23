@@ -163,13 +163,22 @@
 
             return Result<FollowToggleResultDto>.Success(new FollowToggleResultDto(action, followersCount));
         }
-        public async Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto)
+        public async Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto, IFormFile? cover)
         {
+            string? coverUrl = null;
+
+            if (cover is not null)
+            {
+                var upload = await imageService.UploadAsync(cover, "sard/favorite-novels");
+                if (upload.IsSuccess)
+                    coverUrl = upload.Data;
+            }
+
             var novel = new FavoriteNovel
             {
                 Title = dto.Title,
                 AuthorName = dto.AuthorName,
-                CoverImageUrl = dto.CoverImageUrl,
+                CoverImageUrl = coverUrl,
                 UserId = userId,
                 CreatedAt = EgyptDateTime.Now
             };

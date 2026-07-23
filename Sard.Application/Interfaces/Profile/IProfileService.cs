@@ -9,7 +9,8 @@
         Task<Result<string>> DeleteHighlightAsync(string userId, int highlightId);
         Task<Result<PublicProfileDto>> GetPublicProfileAsync(string targetUserId, string currentUserId);
         Task<Result<FollowToggleResultDto>> ToggleFollowAsync(string followerId, string followedId);
-        Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto);
+        //Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto);
+        Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto, IFormFile? cover);
         Task<Result<string>> DeleteFavoriteNovelAsync(string userId, int novelId);
         Task<Result<IEnumerable<FollowUserDto>>> GetFollowersAsync(string userId);
         Task<Result<IEnumerable<FollowUserDto>>> GetFollowingAsync(string userId);

@@ -2,7 +2,6 @@
 {
     public record AddFavoriteNovelDto(
     string Title,
-    string? AuthorName,
-    string? CoverImageUrl
+    string? AuthorName
 );
 }
