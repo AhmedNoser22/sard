@@ -69,6 +69,13 @@ namespace Sard.API.Controllers
             var result = await novelService.UpdateNovelSettingsAsync(UserId, novelId, dto);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+        [HttpGet("purchased")]
+        [Authorize]
+        public async Task<IActionResult> GetPurchasedNovels()
+        {
+            var result = await novelService.GetPurchasedNovelsAsync(UserId);
+            return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
+        }
 
         [HttpGet("published")]
         [AllowAnonymous]
@@ -119,6 +126,13 @@ namespace Sard.API.Controllers
             var fileName = $"{result.Data!.Title}.pdf";
 
             return File(pdfBytes, "application/pdf", fileName);
+        }
+        [HttpPost("{novelId}/confirm-purchase")]
+        [Authorize]
+        public async Task<IActionResult> ConfirmPurchase(int novelId, [FromBody] ConfirmPurchaseDto dto)
+        {
+            var result = await novelService.ConfirmPurchaseAsync(UserId, novelId, dto.SessionId);
+            return result.IsSuccess ? Ok() : BadRequest(result.Error);
         }
     }
 }

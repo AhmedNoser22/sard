@@ -14,5 +14,6 @@
         Task<Result<bool>> HasPurchasedAsync(string userId, int novelId);
         Task<Result<NovelDownloadDto>> GetNovelForDownloadAsync(string userId, int novelId);
         Task<Result<IEnumerable<PublishedNovelDto>>> GetPurchasedNovelsAsync(string userId);
+        Task<Result<string>> ConfirmPurchaseAsync(string userId, int novelId, string sessionId);
     }
 }

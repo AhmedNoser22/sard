@@ -50,7 +50,11 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
+app.Use(async (context, next) =>
+{
+    context.Request.EnableBuffering();
+    await next();
+});
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();

@@ -236,7 +236,33 @@
                 n.Chapters?.Count ?? 0, n.ReadCount, n.CreatedAt
             )));
         }
+        public async Task<Result<string>> ConfirmPurchaseAsync(string userId, int novelId, string sessionId)
+        {
+            var alreadyPurchased = await db.Purchases.AnyAsync(p =>
+                p.UserId == userId &&
+                p.NovelId == novelId &&
+                p.Type == PurchaseType.ReadFee);
 
+            if (alreadyPurchased)
+                return Result<string>.Success("مشتري بالفعل");
+
+            var novel = await db.Novels.FindAsync(novelId);
+            if (novel is null)
+                return Result<string>.Failure("الرواية غير موجودة");
+
+            db.Purchases.Add(new Purchase
+            {
+                UserId = userId,
+                NovelId = novelId,
+                Amount = novel.Price,
+                PaymobTransactionId = sessionId,
+                Type = PurchaseType.ReadFee,
+                PaidAt = EgyptDateTime.Now
+            });
+
+            await db.SaveChangesAsync();
+            return Result<string>.Success("تم");
+        }
         private static NovelSummaryDto MapToDto(Sard.Domain.Entities.Novel n) =>
             new(n.Id, n.Title, n.Description, n.CoverImageUrl, n.Price, n.Status,
                 n.Chapters?.Count ?? 0, n.LastReadChapterId, n.CreatedAt);

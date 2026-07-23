@@ -30,12 +30,11 @@ namespace Sard.Infrastructure.Implementation.Auth
             }
 
             return Result<AuthResponseDto>.Success(new AuthResponseDto(
-                dto.Id,
+                string.Empty,
                 dto.DisplayName,
                 dto.Email,
                 string.Empty
-                
-            ));
+                ));
         }
 
         public async Task<Result<AuthResponseDto>> ConfirmEmailAsync(ConfirmEmailDto dto)

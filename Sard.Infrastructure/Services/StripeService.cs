@@ -22,37 +22,37 @@ namespace Sard.Infrastructure.Services
                 return Result<string>.Failure("الرواية منشورة بالفعل");
 
             var platformFeeCents = novel.Price > 0
-    ? Math.Max(3000, (long)(novel.Price * _settings.PlatformFeePercent / 100 * 100))
-    : 500;
+                ? Math.Max(3000, (long)(novel.Price * _settings.PlatformFeePercent / 100 * 100))
+                : 500;
 
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>
+        {
+            new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
                 {
-                    new SessionLineItemOptions
+                    Currency = "egp",
+                    UnitAmount = platformFeeCents,
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
-                        PriceData = new SessionLineItemPriceDataOptions
-                        {
-                            Currency = "egp",
-                            UnitAmount = platformFeeCents,
-                            ProductData = new SessionLineItemPriceDataProductDataOptions
-                            {
-                                Name = $"نشر رواية: {novel.Title}",
-                                Description = "رسوم نشر الرواية على منصة سرد"
-                            }
-                        },
-                        Quantity = 1
+                        Name = $"نشر رواية: {novel.Title}",
+                        Description = "رسوم نشر الرواية على منصة سرد"
                     }
                 },
+                Quantity = 1
+            }
+        },
                 Mode = "payment",
                 SuccessUrl = "http://localhost:4200/payment-success",
                 CancelUrl = "http://localhost:4200/payment-failed",
                 Metadata = new Dictionary<string, string>
-                {
-                    { "novelId", novelId.ToString() },
-                    { "userId", userId }
-                }
+        {
+            { "novelId", novelId.ToString() },
+            { "userId", userId }
+        }
             };
 
             var service = new SessionService();
@@ -153,6 +153,7 @@ namespace Sard.Infrastructure.Services
 
             if (novel.Price == 0)
                 return Result<string>.Failure("الرواية مجانية");
+
             if (novel.Price > 0 && novel.Price < 30)
                 return Result<string>.Failure("الحد الأدنى لسعر الرواية 30 جنيه");
 
@@ -165,6 +166,9 @@ namespace Sard.Infrastructure.Services
                 return Result<string>.Failure("اشتريت الرواية بالفعل");
 
             var amountCents = (long)(novel.Price * 100);
+            var description = string.IsNullOrWhiteSpace(novel.Description)
+                ? $"رواية بقلم {novel.Author?.DisplayName}"
+                : novel.Description;
 
             var options = new SessionCreateOptions
             {
@@ -180,14 +184,14 @@ namespace Sard.Infrastructure.Services
                     ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
                         Name = novel.Title,
-                        Description = novel.Description ?? $"رواية بقلم {novel.Author?.DisplayName}"
+                        Description = description
                     }
                 },
                 Quantity = 1
             }
         },
                 Mode = "payment",
-                SuccessUrl = $"http://localhost:4200/payment-success?novelId={novelId}&type=read",
+                SuccessUrl = $"http://localhost:4200/payment-success?novelId={novelId}&type=read&session_id={{CHECKOUT_SESSION_ID}}",
                 CancelUrl = "http://localhost:4200/payment-failed",
                 Metadata = new Dictionary<string, string>
         {
