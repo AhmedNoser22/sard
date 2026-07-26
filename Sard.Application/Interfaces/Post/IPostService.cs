@@ -9,5 +9,6 @@
         Task<Result<(bool IsLiked, int LikesCount)>> ToggleLikeAsync(string userId, int postId);
         Task<Result<string>> DeletePostAsync(string userId, int postId);
         Task<Result<string>> DeleteReplyAsync(string userId, int replyId);
+        Task<Result<string>> DeleteReplyByAdminAsync(int replyId);
     }
 }

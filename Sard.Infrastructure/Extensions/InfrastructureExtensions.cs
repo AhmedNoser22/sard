@@ -1,4 +1,5 @@
-﻿using Sard.Infrastructure.Implementation.Notification;
+﻿using Sard.Infrastructure.Implementation.Admin;
+using Sard.Infrastructure.Implementation.Notification;
 using Sard.Infrastructure.Implementation.Post;
 
 namespace Sard.Infrastructure.Extensions
@@ -14,9 +15,14 @@ namespace Sard.Infrastructure.Extensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             //section for identity and authentication
-            services.AddIdentity<AppUser, IdentityRole>()
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders();
+            services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(365 * 100);
+                options.Lockout.MaxFailedAccessAttempts = 999;
+            })
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
             services.AddAuthentication(options =>
             {
@@ -81,6 +87,7 @@ namespace Sard.Infrastructure.Extensions
             services.AddScoped<INovelService, NovelService>();
             services.AddScoped<IPostService, PostService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IAdminService, AdminService>();
 
 
             //real-time communication

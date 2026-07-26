@@ -192,6 +192,26 @@
 
             return Result<string>.Success("تم الحذف");
         }
+        public async Task<Result<string>> DeleteReplyByAdminAsync(int replyId)
+        {
+            var reply = await db.Replies
+                .Include(r => r.Post)
+                .FirstOrDefaultAsync(r => r.Id == replyId);
+
+            if (reply is null)
+                return Result<string>.Failure("التعليق غير موجود");
+
+            var post = reply.Post;
+            db.Replies.Remove(reply);
+            post.CommentsCount = Math.Max(0, post.CommentsCount - 1);
+            await db.SaveChangesAsync();
+
+            await hubContext.Clients
+                .Group($"post-{reply.PostId}")
+                .SendAsync("ReplyDeleted", new { postId = reply.PostId, replyId });
+
+            return Result<string>.Success("تم الحذف");
+        }
         private static PostDto MapToDto(Domain.Entities.Post p, string currentUserId) => new(
             p.Id,
             p.Content,

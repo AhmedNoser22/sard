@@ -100,16 +100,15 @@ namespace Sard.Infrastructure.Implementation.Auth
             if (!user.EmailConfirmed)
                 return Result<AuthResponseDto>.Failure("يرجى تأكيد بريدك الإلكتروني أولاً");
 
+            var isLocked = await userManager.IsLockedOutAsync(user);
+            if (isLocked)
+                return Result<AuthResponseDto>.Failure("تم قفل حسابك من قِبَل الإدارة. للاستفسار تواصل مع الدعم.");
+
             var roles = await userManager.GetRolesAsync(user);
             var token = tokenService.GenerateToken(user, roles);
 
-            return Result<AuthResponseDto>.Success(new
-               AuthResponseDto(
-               user.Id,
-               user.DisplayName,
-               user.Email!,
-               token
-               ));
+            return Result<AuthResponseDto>.Success(new AuthResponseDto(
+                user.Id, user.DisplayName, user.Email!, token));
         }
 
         public async Task<Result<AuthResponseDto>> GoogleLoginAsync(GoogleLoginDto dto)
