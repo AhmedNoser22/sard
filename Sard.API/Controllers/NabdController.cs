@@ -34,6 +34,19 @@ namespace Sard.API.Controllers
             var result = await postService.GetPostAsync(postId, UserId);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+        [HttpPost("{postId}/share")]
+        public async Task<IActionResult> SharePost(int postId)
+        {
+            var result = await postService.SharePostAsync(UserId, postId);
+            return result.IsSuccess ? Ok(new { action = result.Data }) : BadRequest(result.Error);
+        }
+
+        [HttpGet("my-shares")]
+        public async Task<IActionResult> GetMyShares()
+        {
+            var result = await postService.GetMySharesAsync(UserId);
+            return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
+        }
 
         [HttpPost("{postId}/reply")]
         public async Task<IActionResult> AddReply(int postId, [FromBody] CreateReplyDto dto)

@@ -1,23 +1,49 @@
-﻿namespace Sard.Infrastructure.Implementation.Profile
+﻿using Sard.Application.Interfaces.Cache;
+
+namespace Sard.Infrastructure.Implementation.Profile
 {
     public class ProfileService(
     AppDbContext db,
     UserManager<AppUser> userManager,
     IImageService imageService,
-    INotificationService notificationService) : IProfileService
+    INotificationService notificationService,
+    ICacheService cache) : IProfileService
     {
+        private string ProfileCacheKey(string userId) => $"profile:{userId}";
+        private string HighlightsCacheKey(string userId) => $"highlights:{userId}";
         public async Task<Result<ProfileDto>> GetProfileAsync(string userId)
         {
-            var user = await userManager.FindByIdAsync(userId);
-            if (user is null) return Result<ProfileDto>.Failure("المستخدم غير موجود");
+            var cacheKey = ProfileCacheKey(userId);
+            var cached = await cache.GetAsync<ProfileDto>(cacheKey);
+            if (cached is not null)
+                return Result<ProfileDto>.Success(cached);
 
-            var novels = await db.Novels.Where(n => n.AuthorId == userId).Include(n => n.Chapters).ToListAsync();
-            var highlights = await db.Highlights.Where(h => h.UserId == userId).OrderByDescending(h => h.CreatedAt).ToListAsync();
-            var favoriteNovels = await db.FavoriteNovels.Where(f => f.UserId == userId).OrderByDescending(f => f.CreatedAt).ToListAsync();
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null)
+                return Result<ProfileDto>.Failure("المستخدم غير موجود");
+
+            var novels = await db.Novels
+                .Where(n => n.AuthorId == userId)
+                .Include(n => n.Chapters)
+                .ToListAsync();
+
+            var highlights = await db.Highlights
+                .Where(h => h.UserId == userId)
+                .OrderByDescending(h => h.CreatedAt)
+                .ToListAsync();
+
+            var favoriteNovels = await db.FavoriteNovels
+                .Where(f => f.UserId == userId)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
+
             var followersCount = await db.Follows.CountAsync(f => f.FollowedId == userId);
             var followingCount = await db.Follows.CountAsync(f => f.FollowerId == userId);
 
-            return Result<ProfileDto>.Success(MapToDto(user, novels, highlights, favoriteNovels, followersCount, followingCount));
+            var dto = MapToDto(user, novels, highlights, favoriteNovels, followersCount, followingCount);
+            await cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(15));
+
+            return Result<ProfileDto>.Success(dto);
         }
 
         public async Task<Result<ProfileDto>> UpdateProfileAsync(string userId, UpdateProfileDto dto)
@@ -30,6 +56,7 @@
             user.Bio = dto.Bio;
 
             await userManager.UpdateAsync(user);
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return await GetProfileAsync(userId);
         }
@@ -66,6 +93,7 @@
 
             db.Highlights.Add(highlight);
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<HighlightDto>.Success(new HighlightDto(
                 highlight.Id,

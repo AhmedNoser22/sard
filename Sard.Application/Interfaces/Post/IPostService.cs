@@ -10,5 +10,7 @@
         Task<Result<string>> DeletePostAsync(string userId, int postId);
         Task<Result<string>> DeleteReplyAsync(string userId, int replyId);
         Task<Result<string>> DeleteReplyByAdminAsync(int replyId);
+        Task<Result<string>> SharePostAsync(string userId, int postId);
+        Task<Result<IEnumerable<SharedPostDto>>> GetMySharesAsync(string userId);
     }
 }

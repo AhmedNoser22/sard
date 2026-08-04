@@ -1,13 +1,24 @@
-﻿namespace Sard.Infrastructure.Implementation.Post
+﻿using Sard.Application.Interfaces.Cache;
+
+namespace Sard.Infrastructure.Implementation.Post
 {
     public class PostService(
     AppDbContext db,
     UserManager<AppUser> userManager,
     IHubContext<NabdHub> hubContext,
-    INotificationService notificationService) : IPostService
+    INotificationService notificationService,
+    ICacheService cache) : IPostService
     {
+        private const string PostsCacheKey = "posts:all";
+        private const string UserPostsPrefix = "posts:user:";
+        private const string HighlightsPrefix = "highlights:user:";
         public async Task<Result<IEnumerable<PostDto>>> GetPostsAsync(string currentUserId, int page, int pageSize)
         {
+            var cacheKey = $"{PostsCacheKey}:{page}:{pageSize}";
+            var cached = await cache.GetAsync<List<PostDto>>(cacheKey);
+            if (cached is not null)
+                return Result<IEnumerable<PostDto>>.Success(cached);
+
             var posts = await db.Posts
                 .Where(p => p.Status == PostStatus.Active)
                 .Include(p => p.User)
@@ -18,17 +29,18 @@
                 .Take(pageSize)
                 .ToListAsync();
 
-            return Result<IEnumerable<PostDto>>.Success(
-                posts.Select(p => MapToDto(p, currentUserId)));
+            var result = posts.Select(p => MapToDto(p, currentUserId)).ToList();
+            await cache.SetAsync(cacheKey, result, TimeSpan.FromMinutes(5));
+
+            return Result<IEnumerable<PostDto>>.Success(result);
         }
 
         public async Task<Result<PostDto>> CreatePostAsync(string userId, CreatePostDto dto)
         {
             var user = await userManager.FindByIdAsync(userId);
-            if (user is null)
-                return Result<PostDto>.Failure("المستخدم غير موجود");
+            if (user is null) return Result<PostDto>.Failure("المستخدم غير موجود");
 
-            var post = new Domain.Entities.Post
+            var post = new Sard.Domain.Entities.Post
             {
                 Content = dto.Content,
                 UserId = userId,
@@ -38,14 +50,71 @@
 
             db.Posts.Add(post);
             await db.SaveChangesAsync();
-
             await db.Entry(post).Reference(p => p.User).LoadAsync();
 
-            var postDto = MapToDto(post, userId);
+            await cache.RemoveByPrefixAsync(PostsCacheKey);
 
+            var postDto = MapToDto(post, userId);
             await hubContext.Clients.All.SendAsync("NewPost", postDto);
 
             return Result<PostDto>.Success(postDto);
+        }
+        public async Task<Result<string>> SharePostAsync(string userId, int postId)
+        {
+            var already = await db.PostShares.AnyAsync(s => s.UserId == userId && s.PostId == postId);
+            if (already)
+            {
+                var existing = await db.PostShares.FirstAsync(s => s.UserId == userId && s.PostId == postId);
+                db.PostShares.Remove(existing);
+                await db.SaveChangesAsync();
+                await cache.RemoveAsync($"shares:user:{userId}");
+                return Result<string>.Success("unshared");
+            }
+
+            var post = await db.Posts.FindAsync(postId);
+            if (post is null) return Result<string>.Failure("البوست غير موجود");
+
+            db.PostShares.Add(new PostShare
+            {
+                UserId = userId,
+                PostId = postId,
+                CreatedAt = EgyptDateTime.Now
+            });
+
+            await db.SaveChangesAsync();
+            await cache.RemoveAsync($"shares:user:{userId}");
+            return Result<string>.Success("shared");
+        }
+
+        public async Task<Result<IEnumerable<SharedPostDto>>> GetMySharesAsync(string userId)
+        {
+            var cacheKey = $"shares:user:{userId}";
+            var cached = await cache.GetAsync<List<SharedPostDto>>(cacheKey);
+            if (cached is not null)
+                return Result<IEnumerable<SharedPostDto>>.Success(cached);
+
+            var shares = await db.PostShares
+                .Where(s => s.UserId == userId)
+                .Include(s => s.Post).ThenInclude(p => p.User)
+                .Include(s => s.Post).ThenInclude(p => p.Likes)
+                .Include(s => s.Post).ThenInclude(p => p.Replies)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            var result = shares.Select(s => new SharedPostDto(
+                s.Id,
+                s.PostId,
+                s.Post.Content,
+                s.Post.User?.DisplayName ?? "",
+                s.Post.User?.ProfileImageUrl,
+                s.Post.LikesCount,
+                s.Post.CommentsCount,
+                s.Post.CreatedAt,
+                s.CreatedAt
+            )).ToList();
+
+            await cache.SetAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+            return Result<IEnumerable<SharedPostDto>>.Success(result);
         }
 
         public async Task<Result<PostDto>> GetPostAsync(int postId, string currentUserId)
