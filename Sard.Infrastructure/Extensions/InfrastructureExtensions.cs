@@ -1,8 +1,10 @@
-﻿using Sard.Application.Interfaces.Cache;
+﻿using Hangfire;
+using Sard.Application.Interfaces.Cache;
 using Sard.Infrastructure.Implementation.Admin;
 using Sard.Infrastructure.Implementation.Cache;
 using Sard.Infrastructure.Implementation.Notification;
 using Sard.Infrastructure.Implementation.Post;
+using Sard.Infrastructure.Jobs;
 using StackExchange.Redis;
 
 namespace Sard.Infrastructure.Extensions
@@ -104,13 +106,26 @@ namespace Sard.Infrastructure.Extensions
             services.AddSignalR();
 
             // setting for payment service
-
             services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
             services.AddScoped<IPaymentService, StripeService>();
 
 
             // section for pdf generation   
             services.AddScoped<NovelPdfService>();
+
+
+            // section for background jobs
+            services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
+
+            services.AddHangfireServer();
+
+            services.AddScoped<TokenCleanupJob>();
+            services.AddScoped<EmailQueueJob>();
+            services.AddScoped<StatsUpdateJob>();
 
 
             return services;

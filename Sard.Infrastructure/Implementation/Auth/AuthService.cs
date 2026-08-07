@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-
-namespace Sard.Infrastructure.Implementation.Auth
+﻿namespace Sard.Infrastructure.Implementation.Auth
 {
     public class AuthService(
         UserManager<AppUser> userManager,
         ITokenService tokenService,
-        IEmailService emailService,
+        IBackgroundJobClient backgroundJob,
         IGoogleAuthService googleAuthService,
         IMemoryCache cache) : IAuthService
     {
@@ -18,16 +16,9 @@ namespace Sard.Infrastructure.Implementation.Auth
 
             cache.Set($"reg:{dto.Email}", (dto, code), TimeSpan.FromMinutes(10));
 
-            try
-            {
-                var body = EmailTemplates.GetCodeEmail(dto.DisplayName, code, "confirm");
-                await emailService.SendEmailAsync(dto.Email, "تأكيد البريد الإلكتروني 💌", body);
-            }
-            catch (Exception ex)
-            {
-                cache.Remove($"reg:{dto.Email}");
-                return Result<AuthResponseDto>.Failure($"فشل إرسال الإيميل: {ex.Message}");
-            }
+            var body = EmailTemplates.GetCodeEmail(dto.DisplayName, code, "confirm");
+            backgroundJob.Enqueue<EmailQueueJob>(job =>
+                job.SendEmailAsync(dto.Email, "تأكيد البريد الإلكتروني 💌", body));
 
             return Result<AuthResponseDto>.Success(new AuthResponseDto(
                 string.Empty,
@@ -68,12 +59,12 @@ namespace Sard.Infrastructure.Implementation.Auth
             var roles = await userManager.GetRolesAsync(user);
             var token = tokenService.GenerateToken(user, roles);
 
-            return Result<AuthResponseDto>.Success(new 
+            return Result<AuthResponseDto>.Success(new
                 AuthResponseDto(
-                user.Id,           
-                user.DisplayName,  
-                user.Email!,       
-                token              
+                user.Id,
+                user.DisplayName,
+                user.Email!,
+                token
                 ));
         }
 
@@ -86,7 +77,8 @@ namespace Sard.Infrastructure.Implementation.Auth
             cache.Set($"reg:{dto.Email}", (cached.regDto, newCode), TimeSpan.FromMinutes(10));
 
             var body = EmailTemplates.GetCodeEmail(cached.regDto.DisplayName, newCode, "confirm");
-            await emailService.SendEmailAsync(dto.Email, "تأكيد البريد الإلكتروني 💌", body);
+            backgroundJob.Enqueue<EmailQueueJob>(job =>
+                job.SendEmailAsync(dto.Email, "تأكيد البريد الإلكتروني 💌", body));
 
             return Result<string>.Success("تم إرسال الرمز مرة أخرى ✅");
         }
@@ -160,7 +152,8 @@ namespace Sard.Infrastructure.Implementation.Auth
             cache.Set($"reset:{dto.Email}", code, TimeSpan.FromMinutes(10));
 
             var body = EmailTemplates.GetCodeEmail(user.DisplayName, code, "reset");
-            await emailService.SendEmailAsync(user.Email!, "إعادة تعيين كلمة المرور 🔐", body);
+            backgroundJob.Enqueue<EmailQueueJob>(job =>
+                job.SendEmailAsync(user.Email!, "إعادة تعيين كلمة المرور 🔐", body));
 
             return Result<string>.Success("تم إرسال رمز إعادة التعيين ✅");
         }

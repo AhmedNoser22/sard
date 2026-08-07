@@ -1,8 +1,11 @@
+using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Sard.API.Filters;
 
 using Sard.Infrastructure.Extensions;
 using Sard.Infrastructure.Hubs;
+using Sard.Infrastructure.Jobs;
+
 
 //using Sard.Infrastructure.Seeders;
 using System.Text.Json;
@@ -56,18 +59,32 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseCors("AllowAngular");
-
-
 app.UseAuthentication();
-
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAdminFilter() },
+    DashboardTitle = "سرد — لوحة المهام",
+    IgnoreAntiforgeryToken = true
+});
 
+app.MapControllers();
 app.MapHub<NabdHub>("/hubs/nabd");
+
+using (var scope = app.Services.CreateScope())
+{
+    RecurringJob.AddOrUpdate<TokenCleanupJob>(
+        "cleanup-tokens",
+        job => job.CleanExpiredTokensAsync(),
+        Cron.Daily);
+
+    RecurringJob.AddOrUpdate<StatsUpdateJob>(
+        "update-novel-stats",
+        job => job.UpdateNovelStatsAsync(),
+        Cron.Hourly);
+}
 
 app.Run();
