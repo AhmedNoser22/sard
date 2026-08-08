@@ -327,57 +327,73 @@
             if (string.IsNullOrWhiteSpace(emoji))
                 return Result<GroupMessageDto>.Failure("الرمز غير صالح");
 
-            var message = await db.GroupMessages
-                .Include(m => m.Sender)
-                .Include(m => m.Reactions).ThenInclude(r => r.User)
-                .FirstOrDefaultAsync(m => m.Id == messageId && m.GroupId == groupId);
-
-            if (message is null)
-                return Result<GroupMessageDto>.Failure("الرسالة غير موجودة");
-
-            if (message.IsDeleted)
-                return Result<GroupMessageDto>.Failure("لا يمكن التفاعل مع رسالة محذوفة");
-
-            
-            if (RemoveDuplicateReactions(message))
-                await db.SaveChangesAsync();
-
-            var existing = message.Reactions.FirstOrDefault(r => r.UserId == userId);
-            if (existing is not null)
+            for (var attempt = 0; attempt < 2; attempt++)
             {
-                if (existing.Emoji == emoji)
+                var message = await db.GroupMessages
+                    .Include(m => m.Sender)
+                    .Include(m => m.Reactions).ThenInclude(r => r.User)
+                    .FirstOrDefaultAsync(m => m.Id == messageId && m.GroupId == groupId);
+
+                if (message is null)
+                    return Result<GroupMessageDto>.Failure("الرسالة غير موجودة");
+
+                if (message.IsDeleted)
+                    return Result<GroupMessageDto>.Failure("لا يمكن التفاعل مع رسالة محذوفة");
+
+                if (RemoveDuplicateReactions(message))
+                    await db.SaveChangesAsync();
+
+                var existing = message.Reactions.FirstOrDefault(r => r.UserId == userId);
+
+                try
                 {
-                    
-                    db.GroupMessageReactions.Remove(existing);
-                    message.Reactions.Remove(existing);
+                    if (existing is not null)
+                    {
+                        if (existing.Emoji == emoji)
+                        {
+                            db.GroupMessageReactions.Remove(existing);
+                            message.Reactions.Remove(existing);
+                        }
+                        else
+                        {
+                            existing.Emoji = emoji;
+                        }
+                    }
+                    else
+                    {
+                        var currentUser = message.Sender?.Id == userId ? message.Sender : await userManager.FindByIdAsync(userId);
+                        var reaction = new GroupMessageReaction
+                        {
+                            MessageId = messageId,
+                            UserId = userId,
+                            User = currentUser,
+                            Emoji = emoji,
+                            CreatedAt = EgyptDateTime.Now
+                        };
+
+                        db.GroupMessageReactions.Add(reaction);
+                    }
+
+                    await db.SaveChangesAsync();
+
+                    var freshMessage = await db.GroupMessages
+                        .Include(m => m.Sender)
+                        .Include(m => m.Reactions).ThenInclude(r => r.User)
+                        .FirstAsync(m => m.Id == messageId);
+
+                    var dto = MapMessageToDto(freshMessage, userId);
+                    await SafeBroadcastAsync(groupId, "MessageReacted", dto);
+
+                    return Result<GroupMessageDto>.Success(dto);
                 }
-                else
+                catch (DbUpdateException) when (attempt == 0)
                 {
-                    
-                    existing.Emoji = emoji;
+                    db.ChangeTracker.Clear();
+                    continue;
                 }
             }
-            else
-            {
-                var currentUser = message.Sender?.Id == userId ? message.Sender : await userManager.FindByIdAsync(userId);
-                var reaction = new GroupMessageReaction
-                {
-                    MessageId = messageId,
-                    UserId = userId,
-                    User = currentUser,
-                    Emoji = emoji,
-                    CreatedAt = EgyptDateTime.Now
-                };
-                db.GroupMessageReactions.Add(reaction);
-                message.Reactions.Add(reaction);
-            }
 
-            await db.SaveChangesAsync();
-
-            var dto = MapMessageToDto(message, userId);
-            await SafeBroadcastAsync(groupId, "MessageReacted", dto);
-
-            return Result<GroupMessageDto>.Success(dto);
+            return Result<GroupMessageDto>.Failure("حدث تعارض أثناء التفاعل، حاول مرة أخرى");
         }
 
         public async Task<Result<GroupMessageDto>> DeleteMessageAsync(string userId, int groupId, int messageId)
@@ -426,7 +442,7 @@
 
             foreach (var grp in duplicateGroups)
             {
-                var extras = grp.OrderBy(r => r.CreatedAt).Skip(1).ToList();
+                var extras = grp.OrderBy(r => r.CreatedAt).ThenBy(r => r.Id).Skip(1).ToList();
                 foreach (var extra in extras)
                 {
                     db.GroupMessageReactions.Remove(extra);
@@ -450,6 +466,7 @@
             }
             catch
             {
+                // تجاهل مقصود: فشل البث اللحظي لا يجب أن يفشل الطلب نفسه
             }
         }
 
