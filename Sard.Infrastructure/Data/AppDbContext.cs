@@ -15,6 +15,10 @@
         public DbSet<Follow> Follows => Set<Follow>();
         public DbSet<FavoriteNovel> FavoriteNovels => Set<FavoriteNovel>();
         public DbSet<PostShare> PostShares => Set<PostShare>();
+        public DbSet<Group> Groups => Set<Group>();
+        public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
+        public DbSet<GroupMessage> GroupMessages => Set<GroupMessage>();
+        public DbSet<GroupMessageReaction> GroupMessageReactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

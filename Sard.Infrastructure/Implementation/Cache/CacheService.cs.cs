@@ -1,6 +1,4 @@
-﻿using Sard.Application.Interfaces.Cache;
-using StackExchange.Redis;
-namespace Sard.Infrastructure.Implementation.Cache
+﻿namespace Sard.Infrastructure.Implementation.Cache
 {
     public class CacheService(IConnectionMultiplexer redis) : ICacheService
     {

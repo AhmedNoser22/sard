@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Sard.Domain.Helpers;
-namespace Sard.Domain.Entities
+﻿namespace Sard.Domain.Entities
 {
     public class AppUser : IdentityUser
     {
@@ -18,5 +16,6 @@ namespace Sard.Domain.Entities
         public ICollection<Follow> Followers { get; set; }
         public ICollection<Follow> Following { get; set; }
         public ICollection<FavoriteNovel> FavoriteNovels { get; set; }
+        public ICollection<GroupMember> GroupMemberships { get; set; }
     }
 }

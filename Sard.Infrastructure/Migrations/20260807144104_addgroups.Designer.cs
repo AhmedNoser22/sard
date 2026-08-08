@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sard.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using Sard.Infrastructure.Data;
 namespace Sard.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807144104_addgroups")]
+    partial class addgroups
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -269,7 +272,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("NovelId");
 
-                    b.ToTable("Chapters", (string)null);
+                    b.ToTable("Chapters");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.FavoriteNovel", b =>
@@ -301,7 +304,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("FavoriteNovels", (string)null);
+                    b.ToTable("FavoriteNovels");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Follow", b =>
@@ -322,7 +325,7 @@ namespace Sard.Infrastructure.Migrations
                     b.HasIndex("FollowerId", "FollowedId")
                         .IsUnique();
 
-                    b.ToTable("Follows", (string)null);
+                    b.ToTable("Follows");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Group", b =>
@@ -360,7 +363,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Groups", (string)null);
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.GroupMember", b =>
@@ -392,7 +395,7 @@ namespace Sard.Infrastructure.Migrations
                     b.HasIndex("GroupId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("GroupMembers", (string)null);
+                    b.ToTable("GroupMembers");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.GroupMessage", b =>
@@ -414,9 +417,6 @@ namespace Sard.Infrastructure.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("SenderId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -427,39 +427,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("GroupMessages", (string)null);
-                });
-
-            modelBuilder.Entity("Sard.Domain.Entities.GroupMessageReaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Emoji")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MessageId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("MessageId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("GroupMessageReactions", (string)null);
+                    b.ToTable("GroupMessages");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Highlight", b =>
@@ -494,7 +462,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Highlights", (string)null);
+                    b.ToTable("Highlights");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Novel", b =>
@@ -542,7 +510,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Novels", (string)null);
+                    b.ToTable("Novels");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Post", b =>
@@ -586,7 +554,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Posts", (string)null);
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.PostLike", b =>
@@ -604,7 +572,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostLikes", (string)null);
+                    b.ToTable("PostLikes");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.PostShare", b =>
@@ -631,7 +599,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PostShares", (string)null);
+                    b.ToTable("PostShares");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Purchase", b =>
@@ -670,7 +638,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Purchases", (string)null);
+                    b.ToTable("Purchases");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Quote", b =>
@@ -697,7 +665,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Quotes", (string)null);
+                    b.ToTable("Quotes");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Reply", b =>
@@ -729,7 +697,7 @@ namespace Sard.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Replies", (string)null);
+                    b.ToTable("Replies");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -871,25 +839,6 @@ namespace Sard.Infrastructure.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("Sard.Domain.Entities.GroupMessageReaction", b =>
-                {
-                    b.HasOne("Sard.Domain.Entities.GroupMessage", "Message")
-                        .WithMany("Reactions")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Sard.Domain.Entities.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Message");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Highlight", b =>
@@ -1038,11 +987,6 @@ namespace Sard.Infrastructure.Migrations
                     b.Navigation("Members");
 
                     b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Sard.Domain.Entities.GroupMessage", b =>
-                {
-                    b.Navigation("Reactions");
                 });
 
             modelBuilder.Entity("Sard.Domain.Entities.Novel", b =>

@@ -9,3 +9,4 @@ global using Sard.Application.DTOs.Chapter;
 global using Sard.Domain.Enums;
 global using Sard.Application.DTOs.Post;
 global using Sard.Application.DTOs.Admin;
+global using Sard.Application.DTOs.Group;

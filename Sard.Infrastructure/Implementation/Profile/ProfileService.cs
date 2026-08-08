@@ -1,6 +1,4 @@
-﻿using Sard.Application.Interfaces.Cache;
-
-namespace Sard.Infrastructure.Implementation.Profile
+﻿namespace Sard.Infrastructure.Implementation.Profile
 {
     public class ProfileService(
     AppDbContext db,

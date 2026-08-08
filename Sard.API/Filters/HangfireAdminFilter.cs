@@ -1,5 +1,3 @@
-using Hangfire.Dashboard;
-
 public class HangfireAdminFilter : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)

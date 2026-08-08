@@ -1,6 +1,4 @@
-﻿using Sard.Application.Interfaces.Cache;
-
-namespace Sard.Infrastructure.Implementation.Post
+﻿namespace Sard.Infrastructure.Implementation.Post
 {
     public class PostService(
     AppDbContext db,

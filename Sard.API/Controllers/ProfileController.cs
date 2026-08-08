@@ -1,11 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Sard.Application.DTOs.Profile;
-using Sard.Application.Interfaces.Profile;
-using Sard.Domain.Enums;
-using System.Security.Claims;
-
-namespace Sard.API.Controllers
+﻿namespace Sard.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

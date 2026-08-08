@@ -1,10 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Sard.Application.Interfaces.Admin;
-using Sard.Application.Interfaces.Post;
-using Sard.Domain.Entities;
-
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]

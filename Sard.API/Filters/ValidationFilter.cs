@@ -1,8 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-
-namespace Sard.API.Filters
+﻿namespace Sard.API.Filters
 {
     public class ValidationFilter(IServiceProvider serviceProvider) : IAsyncActionFilter
     {

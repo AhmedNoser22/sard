@@ -1,14 +1,3 @@
-using Hangfire;
-using Microsoft.AspNetCore.SignalR;
-using Sard.API.Filters;
-
-using Sard.Infrastructure.Extensions;
-using Sard.Infrastructure.Hubs;
-using Sard.Infrastructure.Jobs;
-
-
-//using Sard.Infrastructure.Seeders;
-using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -73,6 +62,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 
 app.MapControllers();
 app.MapHub<NabdHub>("/hubs/nabd");
+app.MapHub<GroupHub>("/hubs/group");
 
 using (var scope = app.Services.CreateScope())
 {

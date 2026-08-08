@@ -1,7 +1,4 @@
-﻿using Sard.Domain.Enums;
-using Sard.Domain.Helpers;
-
-namespace Sard.Domain.Entities
+﻿namespace Sard.Domain.Entities
 {
     public class Purchase
     {

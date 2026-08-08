@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Sard.Application.Services;
-
 namespace Sard.API.Controllers
 {
     [ApiController]

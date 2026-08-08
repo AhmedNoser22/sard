@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Sard.Application.DTOs.Auth;
-using Sard.Application.Interfaces.Auth;
-
-namespace Sard.API.Controllers
+﻿namespace Sard.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

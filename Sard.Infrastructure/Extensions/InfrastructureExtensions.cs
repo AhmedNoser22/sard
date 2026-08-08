@@ -1,13 +1,4 @@
-﻿using Hangfire;
-using Sard.Application.Interfaces.Cache;
-using Sard.Infrastructure.Implementation.Admin;
-using Sard.Infrastructure.Implementation.Cache;
-using Sard.Infrastructure.Implementation.Notification;
-using Sard.Infrastructure.Implementation.Post;
-using Sard.Infrastructure.Jobs;
-using StackExchange.Redis;
-
-namespace Sard.Infrastructure.Extensions
+﻿namespace Sard.Infrastructure.Extensions
 {
     public static class InfrastructureExtensions
     {
@@ -100,6 +91,7 @@ namespace Sard.Infrastructure.Extensions
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<ICacheService, CacheService>();
+            services.AddScoped<IGroupService, GroupService>();
 
 
             //real-time communication
