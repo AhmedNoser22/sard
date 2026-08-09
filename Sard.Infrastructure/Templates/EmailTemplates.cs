@@ -85,7 +85,7 @@ namespace Sard.Infrastructure.Templates
 
         private static string GetMessage(string type) => type switch
         {
-            "confirm" => "رمز تأكيد بريدك الإلكتروني هو:",
+            "confirm" => "رمز تأكيد بريدك الإلكتروني هو",
             "reset" => "تلقينا طلباً لإعادة تعيين كلمة المرور. رمز إعادة التعيين هو:",
             _ => "رمز التحقق الخاص بك هو:"
         };

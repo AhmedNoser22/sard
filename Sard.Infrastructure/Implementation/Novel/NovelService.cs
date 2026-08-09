@@ -1,7 +1,9 @@
 ﻿namespace Sard.Infrastructure.Implementation.Novel
 {
-    public class NovelService(AppDbContext db, IImageService imageService) : INovelService
+    public class NovelService(AppDbContext db, IImageService imageService, ICacheService cache) : INovelService
     {
+        private static string ProfileCacheKey(string userId) => $"profile:{userId}";
+
         public async Task<Result<NovelSummaryDto>> CreateNovelAsync(string userId, CreateNovelDto dto)
         {
             var novel = new Sard.Domain.Entities.Novel
@@ -16,6 +18,7 @@
 
             db.Novels.Add(novel);
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<NovelSummaryDto>.Success(MapToDto(novel));
         }
@@ -36,6 +39,7 @@
 
             novel.CoverImageUrl = upload.Data;
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<string>.Success(upload.Data!);
         }
@@ -53,6 +57,7 @@
             novel.Price = dto.Price;
 
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<NovelSummaryDto>.Success(MapToDto(novel));
         }
@@ -102,6 +107,7 @@
 
             novel.LastReadChapterId = chapter.Id;
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<ChapterDto>.Success(MapChapterToDto(chapter));
         }
@@ -144,6 +150,7 @@
 
             novel.LastReadChapterId = chapterId;
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<string>.Success("تم الحفظ");
         }
@@ -161,6 +168,8 @@
             novel.Price = dto.Price;
 
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
+
             return Result<NovelSummaryDto>.Success(MapToDto(novel));
         }
 
@@ -261,6 +270,8 @@
             });
 
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
+
             return Result<string>.Success("تم");
         }
         private static NovelSummaryDto MapToDto(Sard.Domain.Entities.Novel n) =>

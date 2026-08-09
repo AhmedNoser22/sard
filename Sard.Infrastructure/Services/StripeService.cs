@@ -5,9 +5,12 @@ namespace Sard.Infrastructure.Services
 {
     public class StripeService(
         IOptions<StripeSettings> options,
-        AppDbContext db) : IPaymentService
+        AppDbContext db,
+        ICacheService cache) : IPaymentService
     {
         private readonly StripeSettings _settings = options.Value;
+
+        private static string ProfileCacheKey(string userId) => $"profile:{userId}";
 
         public async Task<Result<string>> InitiatePublishPaymentAsync(string userId, int novelId)
         {
@@ -68,6 +71,7 @@ namespace Sard.Infrastructure.Services
 
             novel.Status = NovelStatus.PendingPayment;
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<string>.Success(session.Url);
         }
@@ -123,6 +127,10 @@ namespace Sard.Infrastructure.Services
                         PaidAt = EgyptDateTime.Now
                     });
                 }
+
+                await db.SaveChangesAsync();
+                await cache.RemoveAsync(ProfileCacheKey(userId));
+                return Result<string>.Success("تم");
             }
             else
             {
@@ -137,10 +145,15 @@ namespace Sard.Infrastructure.Services
                     Type = PurchaseType.PublishFee,
                     PaidAt = EgyptDateTime.Now
                 });
-            }
 
-            await db.SaveChangesAsync();
-            return Result<string>.Success("تم");
+                await db.SaveChangesAsync();
+
+                // الكاش هنا لازم يتشال بـ AuthorId بتاع الرواية، مش الـ userId من الميتاداتا،
+                // لضمان إن بروفايل الكاتب هو اللي بيتحدث فعلاً
+                await cache.RemoveAsync(ProfileCacheKey(novel.AuthorId));
+
+                return Result<string>.Success("تم");
+            }
         }
         public async Task<Result<string>> InitiateReadPaymentAsync(string userId, int novelId)
         {
