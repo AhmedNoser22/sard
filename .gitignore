@@ -19,3 +19,4 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+/Sard.API/Properties/PublishProfiles/site84317-WebDeploy.pubxml
