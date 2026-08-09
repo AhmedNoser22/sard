@@ -21,6 +21,8 @@ global using Sard.Infrastructure.Implementation.Novel;
 global using Sard.Infrastructure.Implementation.Profile;
 global using System.Security.Claims;
 global using MailKit.Net.Smtp;
+global using Stripe;
+global using Stripe.Checkout;
 global using Hangfire;
 global using Sard.Application.DTOs.Group;
 global using Sard.Application.Interfaces.Cache;

@@ -2,7 +2,7 @@
 {
     public class ImageService(IOptions<CloudinarySettings> options) : IImageService
     {
-        private readonly Cloudinary _cloudinary = new(new Account(
+        private readonly Cloudinary _cloudinary = new(new CloudinaryDotNet.Account(
             options.Value.CloudName,
             options.Value.ApiKey,
             options.Value.ApiSecret));

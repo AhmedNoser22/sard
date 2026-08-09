@@ -1,8 +1,8 @@
 ﻿namespace Sard.Infrastructure.Data.EntityTypeConfiguration
 {
-    public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
+    public class QuoteConfiguration : IEntityTypeConfiguration<Sard.Domain.Entities.Quote>
     {
-        public void Configure(EntityTypeBuilder<Quote> builder)
+        public void Configure(EntityTypeBuilder<Sard.Domain.Entities.Quote> builder)
         {
             builder.Property(x => x.Content)
                 .IsRequired()

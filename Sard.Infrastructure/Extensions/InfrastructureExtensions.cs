@@ -77,7 +77,7 @@
 
             //section for services
             services.AddScoped<IImageService, ImageService>();
-            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ITokenService, Sard.Infrastructure.Services.TokenService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddHttpClient<IAiService, AiService>();

@@ -10,7 +10,7 @@
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<Reply> Replies => Set<Reply>();
         public DbSet<PostLike> PostLikes => Set<PostLike>();
-        public DbSet<Quote> Quotes => Set<Quote>();
+        public DbSet<Sard.Domain.Entities.Quote> Quotes => Set<Sard.Domain.Entities.Quote>();
         public DbSet<Highlight> Highlights => Set<Highlight>();
         public DbSet<Follow> Follows => Set<Follow>();
         public DbSet<FavoriteNovel> FavoriteNovels => Set<FavoriteNovel>();

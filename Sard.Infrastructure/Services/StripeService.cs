@@ -1,7 +1,4 @@
-﻿using Stripe;
-using Stripe.Checkout;
-
-namespace Sard.Infrastructure.Services
+﻿namespace Sard.Infrastructure.Services
 {
     public class StripeService(
         IOptions<StripeSettings> options,
@@ -148,8 +145,6 @@ namespace Sard.Infrastructure.Services
 
                 await db.SaveChangesAsync();
 
-                // الكاش هنا لازم يتشال بـ AuthorId بتاع الرواية، مش الـ userId من الميتاداتا،
-                // لضمان إن بروفايل الكاتب هو اللي بيتحدث فعلاً
                 await cache.RemoveAsync(ProfileCacheKey(novel.AuthorId));
 
                 return Result<string>.Success("تم");
