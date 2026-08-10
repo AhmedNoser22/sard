@@ -46,8 +46,8 @@
             }
         },
                 Mode = "payment",
-                SuccessUrl = "http://localhost:4200/payment-success",
-                CancelUrl = "http://localhost:4200/payment-failed",
+                SuccessUrl = "https://ansard.vercel.app/payment-success",
+                CancelUrl = "https://ansard.vercel.app/payment-failed",
                 Metadata = new Dictionary<string, string>
         {
             { "novelId", novelId.ToString() },
@@ -199,8 +199,8 @@
             }
         },
                 Mode = "payment",
-                SuccessUrl = $"http://localhost:4200/payment-success?novelId={novelId}&type=read&session_id={{CHECKOUT_SESSION_ID}}",
-                CancelUrl = "http://localhost:4200/payment-failed",
+                SuccessUrl = $"https://ansard.vercel.app/payment-success?novelId={novelId}&type=read&session_id={{CHECKOUT_SESSION_ID}}",
+                CancelUrl = "https://ansard.vercel.app/payment-failed",
                 Metadata = new Dictionary<string, string>
         {
             { "novelId", novelId.ToString() },

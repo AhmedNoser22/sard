@@ -24,6 +24,8 @@ global using Hangfire;
 global using Microsoft.AspNetCore.SignalR;
 global using Sard.API.Filters;
 global using Sard.Infrastructure.Extensions;
+global using Sard.Application.DTOs.AIHome;
+global using System.Text;
 global using Sard.Infrastructure.Hubs;
 global using Sard.Infrastructure.Jobs;
 global using System.Text.Json;

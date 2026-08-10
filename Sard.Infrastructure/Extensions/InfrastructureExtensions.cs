@@ -101,6 +101,8 @@
             services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
             services.AddScoped<IPaymentService, StripeService>();
 
+            // section of ai 
+            services.AddHttpClient();
 
             // section for pdf generation   
             services.AddScoped<NovelPdfService>();
