@@ -13,6 +13,14 @@
             var result = await novelService.CreateNovelAsync(UserId, dto);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+
+        [HttpDelete("{novelId}")]
+        public async Task<IActionResult> DeleteNovel(int novelId)
+        {
+            var result = await novelService.DeleteNovelAsync(UserId, novelId);
+            return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
+        }
+
         [HttpPost("{novelId}/cover")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadCover(int novelId, [FromForm] UploadCoverDto dto)
@@ -55,12 +63,14 @@
             var result = await novelService.SetLastReadChapterAsync(UserId, novelId, chapterId);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+
         [HttpPut("{novelId}/settings")]
         public async Task<IActionResult> UpdateSettings(int novelId, [FromBody] UpdateNovelSettingsDto dto)
         {
             var result = await novelService.UpdateNovelSettingsAsync(UserId, novelId, dto);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+
         [HttpGet("purchased")]
         [Authorize]
         public async Task<IActionResult> GetPurchasedNovels()
@@ -83,6 +93,7 @@
             var result = await paymentService.InitiatePublishPaymentAsync(UserId, novelId);
             return result.IsSuccess ? Ok(new { iframeUrl = result.Data }) : BadRequest(result.Error);
         }
+
         [HttpPost("{novelId}/purchase")]
         [Authorize]
         public async Task<IActionResult> PurchaseNovel(int novelId, [FromServices] IPaymentService paymentService)
@@ -106,6 +117,7 @@
             var result = await novelService.GetNovelForDownloadAsync(UserId, novelId);
             return result.IsSuccess ? Ok(result.Data) : BadRequest(result.Error);
         }
+
         [HttpGet("{novelId}/download/pdf")]
         [Authorize]
         public async Task<IActionResult> DownloadPdf(int novelId, [FromServices] NovelPdfService pdfService)
@@ -119,6 +131,7 @@
 
             return File(pdfBytes, "application/pdf", fileName);
         }
+
         [HttpPost("{novelId}/confirm-purchase")]
         [Authorize]
         public async Task<IActionResult> ConfirmPurchase(int novelId, [FromBody] ConfirmPurchaseDto dto)

@@ -22,6 +22,35 @@
 
             return Result<NovelSummaryDto>.Success(MapToDto(novel));
         }
+
+        public async Task<Result<string>> DeleteNovelAsync(string userId, int novelId)
+        {
+            var novel = await db.Novels
+                .Include(n => n.Chapters)
+                .FirstOrDefaultAsync(n => n.Id == novelId && n.AuthorId == userId);
+
+            if (novel is null)
+                return Result<string>.Failure("الرواية غير موجودة");
+
+            if (!string.IsNullOrEmpty(novel.CoverImageUrl))
+                await imageService.DeleteAsync(novel.CoverImageUrl);
+
+            db.Chapters.RemoveRange(novel.Chapters);
+            db.Novels.Remove(novel);
+
+            await db.SaveChangesAsync();
+            var cacheKey = ProfileCacheKey(userId);
+            await cache.RemoveAsync(cacheKey);
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2000);
+                await cache.RemoveAsync(cacheKey);
+            });
+
+            return Result<string>.Success("تم الحذف بنجاح");
+        }
+
         public async Task<Result<string>> UploadCoverAsync(string userId, int novelId, IFormFile cover)
         {
             var novel = await db.Novels
@@ -43,6 +72,7 @@
 
             return Result<string>.Success(upload.Data!);
         }
+
         public async Task<Result<NovelSummaryDto>> UpdateNovelAsync(string userId, int novelId, UpdateNovelDto dto)
         {
             var novel = await db.Novels
@@ -154,6 +184,7 @@
 
             return Result<string>.Success("تم الحفظ");
         }
+
         public async Task<Result<NovelSummaryDto>> UpdateNovelSettingsAsync(string userId, int novelId, UpdateNovelSettingsDto dto)
         {
             var novel = await db.Novels
@@ -190,6 +221,7 @@
                 n.Chapters?.Count ?? 0, n.ReadCount, n.CreatedAt
             )));
         }
+
         public async Task<Result<bool>> HasPurchasedAsync(string userId, int novelId)
         {
             var purchased = await db.Purchases.AnyAsync(p =>
@@ -229,6 +261,7 @@
                 novel.Chapters.Select(c => new ChapterDownloadDto(c.Order, c.Title, c.Content))
             ));
         }
+
         public async Task<Result<IEnumerable<PublishedNovelDto>>> GetPurchasedNovelsAsync(string userId)
         {
             var novels = await db.Purchases
@@ -245,6 +278,7 @@
                 n.Chapters?.Count ?? 0, n.ReadCount, n.CreatedAt
             )));
         }
+
         public async Task<Result<string>> ConfirmPurchaseAsync(string userId, int novelId, string sessionId)
         {
             var alreadyPurchased = await db.Purchases.AnyAsync(p =>
@@ -274,6 +308,7 @@
 
             return Result<string>.Success("تم");
         }
+
         private static NovelSummaryDto MapToDto(Sard.Domain.Entities.Novel n) =>
             new(n.Id, n.Title, n.Description, n.CoverImageUrl, n.Price, n.Status,
                 n.Chapters?.Count ?? 0, n.LastReadChapterId, n.CreatedAt);

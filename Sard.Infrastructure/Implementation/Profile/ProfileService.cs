@@ -9,6 +9,7 @@
     {
         private string ProfileCacheKey(string userId) => $"profile:{userId}";
         private string HighlightsCacheKey(string userId) => $"highlights:{userId}";
+
         public async Task<Result<ProfileDto>> GetProfileAsync(string userId)
         {
             var cacheKey = ProfileCacheKey(userId);
@@ -74,6 +75,7 @@
 
             user.ProfileImageUrl = upload.Data;
             await userManager.UpdateAsync(user);
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<string>.Success(upload.Data!);
         }
@@ -112,6 +114,7 @@
 
             db.Highlights.Remove(highlight);
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<string>.Success("تم الحذف بنجاح");
         }
@@ -185,10 +188,15 @@
                     action = "follow";
                 }
             }
+
+            await cache.RemoveAsync(ProfileCacheKey(followerId));
+            await cache.RemoveAsync(ProfileCacheKey(followedId));
+
             var followersCount = await db.Follows.CountAsync(f => f.FollowedId == followedId);
 
             return Result<FollowToggleResultDto>.Success(new FollowToggleResultDto(action, followersCount));
         }
+
         public async Task<Result<FavoriteNovelDto>> AddFavoriteNovelAsync(string userId, AddFavoriteNovelDto dto, IFormFile? cover)
         {
             string? coverUrl = null;
@@ -211,6 +219,7 @@
 
             db.FavoriteNovels.Add(novel);
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<FavoriteNovelDto>.Success(new FavoriteNovelDto(
                 novel.Id, novel.Title, novel.AuthorName, novel.CoverImageUrl, 0));
@@ -226,9 +235,11 @@
 
             db.FavoriteNovels.Remove(novel);
             await db.SaveChangesAsync();
+            await cache.RemoveAsync(ProfileCacheKey(userId));
 
             return Result<string>.Success("تم الحذف");
         }
+
         public async Task<Result<IEnumerable<FollowUserDto>>> GetFollowersAsync(string userId)
         {
             var followers = await db.Follows
@@ -250,6 +261,7 @@
 
             return Result<IEnumerable<FollowUserDto>>.Success(following);
         }
+
         private static ProfileDto MapToDto(AppUser user, List<Sard.Domain.Entities.Novel> novels, List<Highlight> highlights, List<FavoriteNovel> favoriteNovels, int followersCount, int followingCount) =>
             new(
                 user.Id,
