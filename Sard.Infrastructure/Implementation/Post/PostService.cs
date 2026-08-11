@@ -151,6 +151,8 @@
             post.CommentsCount++;
             await db.SaveChangesAsync();
 
+            await cache.RemoveByPrefixAsync(PostsCacheKey);
+
             var replyDto = new ReplyDto(
                 reply.Id,
                 reply.Content,
@@ -201,6 +203,8 @@
 
             await db.SaveChangesAsync();
 
+            await cache.RemoveByPrefixAsync(PostsCacheKey);
+
             await hubContext.Clients
                 .Group($"post-{postId}")
                 .SendAsync("LikeUpdated", new { postId, likesCount = post.LikesCount });
@@ -222,6 +226,8 @@
 
             db.Posts.Remove(post);
             await db.SaveChangesAsync();
+
+            await cache.RemoveByPrefixAsync(PostsCacheKey);
 
             await hubContext.Clients.All.SendAsync("PostDeleted", postId);
 
@@ -250,8 +256,11 @@
             }
             catch (DbUpdateConcurrencyException)
             {
+                await cache.RemoveByPrefixAsync(PostsCacheKey);
                 return Result<string>.Success("تم الحذف");
             }
+
+            await cache.RemoveByPrefixAsync(PostsCacheKey);
 
             await hubContext.Clients
                 .Group($"post-{postId}")
@@ -272,6 +281,8 @@
             db.Replies.Remove(reply);
             post.CommentsCount = Math.Max(0, post.CommentsCount - 1);
             await db.SaveChangesAsync();
+
+            await cache.RemoveByPrefixAsync(PostsCacheKey);
 
             await hubContext.Clients
                 .Group($"post-{reply.PostId}")
